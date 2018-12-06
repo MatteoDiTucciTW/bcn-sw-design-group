@@ -1,5 +1,6 @@
 package controllers
 
+import api.ApiDomainEvent.Timeout
 import logging.{DomainEvent, LogLevel}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -60,9 +61,8 @@ class OrangeControllerSpec extends WordSpec with MockitoSugar with MustMatchers 
 
     "underlying api times out" should {
       val logger = mock[Logger]
-      object TestError extends DomainEvent(LogLevel.Warning, "an orange api timeout occurred")
       val service = {
-        unSuccessfulServiceWith(TestError)
+        unSuccessfulServiceWith(Timeout)
       }
       val controller = controllerWith(service, logger)
 
@@ -77,7 +77,7 @@ class OrangeControllerSpec extends WordSpec with MockitoSugar with MustMatchers 
       }
 
       "log an warning" in {
-        verify(logger).warn(TestError.message)
+        verify(logger).warn(Timeout.message)
       }
     }
   }
@@ -94,8 +94,7 @@ class OrangeControllerSpec extends WordSpec with MockitoSugar with MustMatchers 
     service
   }
 
-  private def controllerWith(service: OrangeService = mock[OrangeService], logger: Logger = mock[Logger]) = {
+  private def controllerWith(service: OrangeService = mock[OrangeService], logger: Logger = mock[Logger]) =
     new OrangeController(orangeService = service, logger = logger)(Helpers.stubControllerComponents())
-  }
 
 }

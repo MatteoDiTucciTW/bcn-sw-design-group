@@ -1,7 +1,8 @@
 package controllers
 
+import api.ApiDomainEvent.{InvalidOrange, Timeout}
 import javax.inject.{Inject, Singleton}
-import logging.{DomainEvent, LogLevel}
+import logging.DomainEvent
 import org.slf4j.Logger
 import play.api.mvc._
 import services.OrangeService
@@ -9,8 +10,9 @@ import services.OrangeService
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class OrangeController @Inject()(orangeService: OrangeService, logger: Logger)(cc: ControllerComponents)(implicit ex: ExecutionContext)
-  extends AbstractController(cc) {
+class OrangeController @Inject()(orangeService: OrangeService, logger: Logger)(cc: ControllerComponents)(
+    implicit ex: ExecutionContext)
+    extends AbstractController(cc) {
 
   def squeeze(id: String): Action[AnyContent] = Action {
     orangeService.squeeze(id) match {
@@ -23,11 +25,10 @@ class OrangeController @Inject()(orangeService: OrangeService, logger: Logger)(c
     }
   }
 
-  private def logDomainEvent(domainEvent: DomainEvent): Unit = {
-    if (domainEvent.logLevel == LogLevel.Error) {
-      logger.error(domainEvent.message)
-    } else {
-      logger.warn(domainEvent.message)
+  private def logDomainEvent(domainEvent: DomainEvent): Unit =
+    domainEvent match {
+      case Timeout       => logger.warn(domainEvent.message)
+      case InvalidOrange => logger.error(domainEvent.message)
+      case _             => logger.error(domainEvent.message)
     }
-  }
 }
